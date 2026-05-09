@@ -1,0 +1,17 @@
+# DataLens Configuration
+
+debug: false
+
+cache:
+  # How long a player session stays alive (seconds)
+  session-ttl-seconds: 60
+  # Maximum concurrent sessions
+  max-sessions: 100
+
+inspect:
+  # Max raytrace distance for /inspect (blocks)
+  max-ray-distance: 5.0
+
+changelog:
+  enabled: true
+  max-entries: 10000

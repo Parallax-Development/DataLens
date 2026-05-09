@@ -1,0 +1,31 @@
+name: DataLens
+version: '1.0.0-SNAPSHOT'
+main: dev.darkblade.datalens.DataLensPlugin
+api-version: '1.20'
+description: Inspect, edit, compare and export Minecraft data structures.
+authors:
+  - darkbladedev
+
+commands:
+  inspect:
+    description: Inspect the block/entity you are looking at, or a named player.
+    usage: /inspect [player]
+    permission: datalens.inspect
+  data:
+    description: Manage data on the currently inspected object.
+    usage: /data <set|remove|export|diff> [args...]
+    permission: datalens.inspect
+
+permissions:
+  datalens.inspect:
+    description: Allows inspecting blocks, entities and items.
+    default: op
+  datalens.edit:
+    description: Allows editing inspected data.
+    default: op
+  datalens.admin:
+    description: Full administrative access to DataLens.
+    default: op
+    children:
+      datalens.inspect: true
+      datalens.edit: true
