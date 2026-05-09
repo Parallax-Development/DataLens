@@ -10,4 +10,3 @@ plugins {
 }
 
 rootProject.name = "DataLens"
-include("app")
