@@ -8,6 +8,7 @@ import dev.darkblade.datalens.security.PermissionGuard;
 import dev.darkblade.datalens.service.DataLensServiceLocator;
 import dev.darkblade.datalens.ui.gui.InspectorGui;
 import dev.darkblade.datalens.util.PathCompleter;
+import dev.darkblade.datalens.util.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -19,6 +20,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.RayTraceResult;
 
 import java.util.List;
 
@@ -28,7 +30,7 @@ import java.util.List;
  *
  * <p>Modes:
  * <ul>
- *   <li><b>No arguments</b> — visual targeting via {@link Player#getTargetEntity} /
+ *   <li><b>No arguments</b> — visual targeting via {@link org.bukkit.World#rayTraceEntities} /
  *       {@link Player#getTargetBlockExact}. Works for any entity including other players.</li>
  *   <li><b>{@code /inspect <name>}</b> — looks up the named online player directly and
  *       opens their inspection without needing line-of-sight.</li>
@@ -36,9 +38,8 @@ import java.util.List;
  *
  * <p>Detection priority (no-arg mode):
  * <ol>
- *   <li>{@link Player#getTargetEntity(int, boolean)} with {@code ignoreBlocks=false} —
- *       engine-level targeting that correctly handles small bounding boxes (armor stands,
- *       item frames, fish…) and respects solid-block occlusion.</li>
+ *   <li>{@link org.bukkit.World#rayTraceEntities} — Bukkit-standard raytrace that correctly
+ *       handles entity bounding boxes and respects solid-block occlusion.</li>
  *   <li>{@link Player#getTargetBlockExact(int)} — first non-transparent block hit.</li>
  * </ol>
  */
@@ -60,7 +61,7 @@ public final class InspectCommand implements CommandExecutor, TabCompleter {
             PermissionGuard.require(sender, PermissionGuard.INSPECT);
             player = PermissionGuard.requirePlayer(sender);
         } catch (PermissionGuard.PermissionException ex) {
-            sender.sendMessage(Component.text(ex.getMessage()).color(NamedTextColor.RED));
+            TextUtil.audience(sender).sendMessage(Component.text(ex.getMessage()).color(NamedTextColor.RED));
             return true;
         }
 
@@ -82,7 +83,7 @@ public final class InspectCommand implements CommandExecutor, TabCompleter {
             }
 
             if (targetPlayer == null) {
-                sender.sendMessage(Component.text("Player not found or offline: ")
+                TextUtil.audience(sender).sendMessage(Component.text("Player not found or offline: ")
                         .color(NamedTextColor.RED)
                         .append(Component.text(targetName).color(NamedTextColor.WHITE)));
                 return true;
@@ -95,9 +96,15 @@ public final class InspectCommand implements CommandExecutor, TabCompleter {
 
         // ── Mode B: /inspect (visual targeting) ───────────────────────────────
 
-        // 1. Entity check — uses engine targeting, handles small hitboxes correctly.
-        //    ignoreBlocks=false → entity must be in direct line of sight (no walls).
-        Entity entityTarget = player.getTargetEntity(maxDistance, false);
+        // 1. Entity check — Bukkit-standard rayTrace (compatible with Spigot + Paper).
+        //    Excludes the player themselves from the trace.
+        RayTraceResult rayResult = player.getWorld().rayTraceEntities(
+                player.getEyeLocation(),
+                player.getEyeLocation().getDirection(),
+                maxDistance,
+                e -> !e.equals(player)
+        );
+        Entity entityTarget = rayResult != null ? rayResult.getHitEntity() : null;
         if (entityTarget != null) {
             InspectableObject obj = inspector.inspect(entityTarget);
             openGui(player, obj, sessions);
@@ -112,7 +119,7 @@ public final class InspectCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        player.sendMessage(Component.text("No block or entity found within ")
+        TextUtil.audience(player).sendMessage(Component.text("No block or entity found within ")
                 .color(NamedTextColor.YELLOW)
                 .append(Component.text(maxDistance + " blocks. ").color(NamedTextColor.WHITE))
                 .append(Component.text("Tip: use /inspect <player> to inspect by name.")
@@ -144,7 +151,7 @@ public final class InspectCommand implements CommandExecutor, TabCompleter {
     private void openGui(Player player, InspectableObject obj, SessionService sessions) {
         PlayerSession session = sessions.open(player.getUniqueId(), obj);
         new InspectorGui(session).open(player);
-        player.sendMessage(Component.text("[DataLens] ").color(NamedTextColor.DARK_AQUA)
+        TextUtil.audience(player).sendMessage(Component.text("[DataLens] ").color(NamedTextColor.DARK_AQUA)
                 .append(Component.text("Inspecting: ").color(NamedTextColor.GRAY))
                 .append(Component.text(obj.getType().name()).color(NamedTextColor.DARK_GRAY))
                 .append(Component.text(" — ").color(NamedTextColor.DARK_GRAY))

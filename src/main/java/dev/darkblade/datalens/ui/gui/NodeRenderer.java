@@ -2,6 +2,7 @@ package dev.darkblade.datalens.ui.gui;
 
 import dev.darkblade.datalens.model.DataNode;
 import dev.darkblade.datalens.model.DataType;
+import dev.darkblade.datalens.util.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -78,10 +79,10 @@ public final class NodeRenderer {
                 .color(colorFor(node.getType()))
                 .decoration(TextDecoration.BOLD, true)
                 .decoration(TextDecoration.ITALIC, false);
-        meta.displayName(name);
+        meta.setDisplayName(TextUtil.legacy(name));
 
         // Lore
-        meta.lore(buildLore(node));
+        meta.setLore(TextUtil.legacyList(buildLore(node)));
 
         item.setItemMeta(meta);
         return item;
@@ -164,14 +165,14 @@ public final class NodeRenderer {
     public static ItemStack filler() {
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta m = glass.getItemMeta();
-        if (m != null) { m.displayName(Component.text(" ")); glass.setItemMeta(m); }
+        if (m != null) { m.setDisplayName(TextUtil.legacy(Component.text(" "))); glass.setItemMeta(m); }
         return glass;
     }
 
     private static ItemStack namedItem(Material mat, Component name) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
-        if (meta != null) { meta.displayName(name); item.setItemMeta(meta); }
+        if (meta != null) { meta.setDisplayName(TextUtil.legacy(name)); item.setItemMeta(meta); }
         return item;
     }
 

@@ -10,8 +10,7 @@ import dev.darkblade.datalens.repository.ChangeLogRepository;
 import dev.darkblade.datalens.service.DataLensServiceLocator;
 import dev.darkblade.datalens.ui.gui.GuiListener;
 import dev.darkblade.datalens.util.AdapterLoader;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import dev.darkblade.datalens.util.TextUtil;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -40,6 +39,9 @@ public final class DataLensPlugin extends JavaPlugin implements DataLensAPI {
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
+
+        // Initialise cross-platform Adventure support (must be first)
+        TextUtil.init(this);
 
         // Config values
         long ttlSeconds  = getConfig().getLong("cache.session-ttl-seconds", 60);
@@ -79,6 +81,7 @@ public final class DataLensPlugin extends JavaPlugin implements DataLensAPI {
 
     @Override
     public void onDisable() {
+        TextUtil.close();
         getLogger().info("DataLens disabled.");
     }
 

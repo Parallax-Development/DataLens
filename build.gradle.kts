@@ -12,24 +12,31 @@ version = providers.gradleProperty("pluginVersion").getOrElse("1.0.0-SNAPSHOT")
 
 repositories {
     mavenCentral()
+    maven("https://hub.spigotmc.org/nexus/content/groups/public/")
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    // Paper API — provided at runtime by the server
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    // Spigot API — provided at runtime by the server (compatible with Bukkit, Spigot and Paper)
+    compileOnly("org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT")
 
-    // Bundled at runtime in Paper — declare for IDE only
+    // Bundled at runtime in Paper/Spigot — declare for IDE only
     compileOnly("org.yaml:snakeyaml:2.2")
 
     // Shaded libraries
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
+    // Adventure — shaded for cross-platform Component support
+    // On Paper: native Adventure is used (zero overhead)
+    // On Spigot: the platform adapter translates to legacy format
+    implementation("net.kyori:adventure-platform-bukkit:4.4.1")
+    implementation("net.kyori:adventure-text-serializer-legacy:4.17.0")
+
     // Tests
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("org.mockito:mockito-core:5.11.0")
-    testImplementation("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    testImplementation("org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -55,7 +62,8 @@ tasks {
         archiveBaseName = "DataLens"
 
         // Note: relocation disabled — shadow's ASM cannot process Java 21 bytecode (version 65).
-        // Jackson and Caffeine are NOT bundled by Paper, so no classloader conflicts exist.
+        // Jackson, Caffeine and Adventure are NOT bundled by Spigot, so no classloader conflicts exist.
+        // On Paper, the native Adventure takes precedence via adventure-platform-bukkit's detection.
         // Re-enable relocation once shadow ships an ASM version ≥ 9.7.
 
         manifest {

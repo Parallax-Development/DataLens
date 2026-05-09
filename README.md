@@ -18,11 +18,11 @@
 
 ## Overview
 
-**DataLens** is a Paper plugin that gives server operators and developers a powerful lens into the internal data structures of Minecraft objects. Point at any block, entity or player, and instantly explore its full data tree — PDC tags, attributes, potion effects, enchantments, block states and more — through both a **paginated chest GUI** and **chat commands**.
+**DataLens** is a Bukkit plugin that gives server operators and developers a powerful lens into the internal data structures of Minecraft objects. Point at any block, entity or player, and instantly explore its full data tree — PDC tags, attributes, potion effects, enchantments, block states and more — through both a **paginated chest GUI** and **chat commands**.
 
 Unlike simple NBT viewers, DataLens provides a complete **inspect → edit → validate → diff → export** pipeline with automatic rollback on failure, a built-in changelog, and a public API for third-party schema registration.
 
-**Supported versions:** Paper 1.20.x – 1.21.x · Java 21+
+**Supported platforms:** Bukkit / Spigot / Paper 1.20.x – 1.21.x · Java 21+
 
 ---
 
@@ -150,11 +150,11 @@ cd DataLens
 # Build the fat JAR (output: build/libs/DataLens-<version>.jar)
 ./gradlew clean build
 
-# Run a local Paper test server
+# Run a local Paper test server (requires run-paper plugin)
 ./gradlew runServer
 ```
 
-The build produces a **shadow JAR** that bundles Jackson and Caffeine. Paper-provided dependencies (Paper API, SnakeYAML) are excluded.
+The build produces a **shadow JAR** that bundles Jackson, Caffeine and the Adventure platform adapter. Server-provided dependencies (Spigot API, SnakeYAML) are excluded.
 
 ---
 

@@ -2,6 +2,7 @@ package dev.darkblade.datalens.ui.gui;
 
 import dev.darkblade.datalens.core.session.PlayerSession;
 import dev.darkblade.datalens.model.DataNode;
+import dev.darkblade.datalens.util.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -44,8 +45,8 @@ public final class InspectorGui implements InventoryHolder {
         this.session = session;
         String title = "DataLens — " + session.getTarget().getId();
         this.inventory = Bukkit.createInventory(this, SIZE,
-                Component.text(title).color(NamedTextColor.DARK_AQUA)
-                        .decoration(TextDecoration.BOLD, true));
+                TextUtil.legacy(Component.text(title).color(NamedTextColor.DARK_AQUA)
+                        .decoration(TextDecoration.BOLD, true)));
         render();
     }
 

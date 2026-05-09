@@ -7,6 +7,8 @@ import dev.darkblade.datalens.core.session.SessionService;
 import dev.darkblade.datalens.model.DataNode;
 import dev.darkblade.datalens.model.DataType;
 import dev.darkblade.datalens.security.PermissionGuard;
+import dev.darkblade.datalens.util.TextUtil;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -67,9 +69,10 @@ public final class GuiListener implements Listener {
         if (gui.isExportSlot(slot)) {
             player.closeInventory();
             String json = serializer.toJson(session.getTarget().getRoot());
-            player.sendMessage(Component.text("[DataLens] JSON Export:")
+            Audience audience = TextUtil.audience(player);
+            audience.sendMessage(Component.text("[DataLens] JSON Export:")
                     .color(NamedTextColor.AQUA));
-            player.sendMessage(Component.text(json).color(NamedTextColor.WHITE));
+            audience.sendMessage(Component.text(json).color(NamedTextColor.WHITE));
             return;
         }
 
@@ -91,7 +94,7 @@ public final class GuiListener implements Listener {
         // Shift+Left → edit primitive
         if (isShift && !isRight && node.getType().isPrimitive()) {
             if (!PermissionGuard.has(player, PermissionGuard.EDIT)) {
-                player.sendMessage(Component.text("You lack datalens.edit permission.")
+                TextUtil.audience(player).sendMessage(Component.text("You lack datalens.edit permission.")
                         .color(NamedTextColor.RED));
                 return;
             }
@@ -103,7 +106,7 @@ public final class GuiListener implements Listener {
         // Right-click → delete
         if (isRight && !isShift) {
             if (!PermissionGuard.has(player, PermissionGuard.EDIT)) {
-                player.sendMessage(Component.text("You lack datalens.edit permission.")
+                TextUtil.audience(player).sendMessage(Component.text("You lack datalens.edit permission.")
                         .color(NamedTextColor.RED));
                 return;
             }
@@ -120,14 +123,15 @@ public final class GuiListener implements Listener {
     // ── Chat-based edit prompt ────────────────────────────────────────────────
 
     private void startChatEdit(Player player, PlayerSession session, DataNode node, InspectorGui gui) {
-        player.sendMessage(Component.text("┌── DataLens Edit ──────────────────────────").color(NamedTextColor.DARK_AQUA));
-        player.sendMessage(Component.text("│ Key: ").color(NamedTextColor.GRAY)
+        Audience audience = TextUtil.audience(player);
+        audience.sendMessage(Component.text("┌── DataLens Edit ──────────────────────────").color(NamedTextColor.DARK_AQUA));
+        audience.sendMessage(Component.text("│ Key: ").color(NamedTextColor.GRAY)
                 .append(Component.text(node.getKey()).color(NodeRenderer.colorFor(node.getType()))));
-        player.sendMessage(Component.text("│ Type: ").color(NamedTextColor.GRAY)
+        audience.sendMessage(Component.text("│ Type: ").color(NamedTextColor.GRAY)
                 .append(Component.text(node.getType().label()).color(NamedTextColor.WHITE)));
-        player.sendMessage(Component.text("│ Current: ").color(NamedTextColor.GRAY)
+        audience.sendMessage(Component.text("│ Current: ").color(NamedTextColor.GRAY)
                 .append(Component.text(String.valueOf(node.getValue())).color(NamedTextColor.YELLOW)));
-        player.sendMessage(Component.text("└── Type new value in chat (or 'cancel'):").color(NamedTextColor.DARK_AQUA));
+        audience.sendMessage(Component.text("└── Type new value in chat (or 'cancel'):").color(NamedTextColor.DARK_AQUA));
         awaitingEdit.add(player.getUniqueId());
 
         // In a full implementation this hooks AsyncPlayerChatEvent — simplified here
@@ -135,7 +139,7 @@ public final class GuiListener implements Listener {
     }
 
     private void confirmDelete(Player player, PlayerSession session, DataNode node, InspectorGui gui) {
-        player.sendMessage(Component.text("Delete ").color(NamedTextColor.RED)
+        TextUtil.audience(player).sendMessage(Component.text("Delete ").color(NamedTextColor.RED)
                 .append(Component.text(node.getKey()).color(NamedTextColor.YELLOW))
                 .append(Component.text("? Use: /data remove " + node.getKey()).color(NamedTextColor.RED)));
     }

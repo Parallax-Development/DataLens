@@ -72,7 +72,7 @@ public class Paper120Adapter implements Adapter {
         root.addChild(DataNode.ofPrimitive("y", DataType.DOUBLE, entity.getLocation().getY()));
         root.addChild(DataNode.ofPrimitive("z", DataType.DOUBLE, entity.getLocation().getZ()));
         root.addChild(DataNode.ofPrimitive("customName",
-                DataType.STRING, entity.customName() != null ? entity.customName().toString() : ""));
+                DataType.STRING, entity.getCustomName() != null ? entity.getCustomName() : ""));
 
         // Scoreboard tags
         DataNode tags = DataNode.ofList("tags");
@@ -129,7 +129,7 @@ public class Paper120Adapter implements Adapter {
         // Identity & session
         node.addChild(DataNode.ofPrimitive("gameMode",     DataType.STRING,  p.getGameMode().name()));
         node.addChild(DataNode.ofPrimitive("ping",         DataType.INT,     p.getPing()));
-        node.addChild(DataNode.ofPrimitive("locale",       DataType.STRING,  p.locale().toString()));
+        node.addChild(DataNode.ofPrimitive("locale",       DataType.STRING,  p.getLocale()));
         node.addChild(DataNode.ofPrimitive("isOp",         DataType.BOOLEAN, p.isOp()));
 
         // Address (may be null for offline/proxy scenarios)
@@ -193,7 +193,7 @@ public class Paper120Adapter implements Adapter {
         // Display name
         if (meta.hasDisplayName()) {
             root.addChild(DataNode.ofPrimitive("displayName", DataType.STRING,
-                    meta.displayName() != null ? meta.displayName().toString() : ""));
+                    meta.getDisplayName()));
         }
 
         // Custom model data
@@ -213,10 +213,10 @@ public class Paper120Adapter implements Adapter {
         root.addChild(enchants);
 
         // Lore
-        if (meta.hasLore() && meta.lore() != null) {
+        if (meta.hasLore() && meta.getLore() != null) {
             DataNode lore = DataNode.ofList("lore");
-            for (int i = 0; i < meta.lore().size(); i++) {
-                lore.addChild(DataNode.ofPrimitive("[" + i + "]", DataType.STRING, meta.lore().get(i).toString()));
+            for (int i = 0; i < meta.getLore().size(); i++) {
+                lore.addChild(DataNode.ofPrimitive("[" + i + "]", DataType.STRING, meta.getLore().get(i)));
             }
             root.addChild(lore);
         }
