@@ -30,7 +30,7 @@ public final class InspectorService {
     public InspectableObject inspect(Block block) {
         DataNode root = adapter.readBlockData(block);
         String id = block.getType().name() + "@" + block.getX() + "," + block.getY() + "," + block.getZ();
-        return new InspectableObject(InspectableType.BLOCK, id, block.getLocation(), root);
+        return new InspectableObject(InspectableType.BLOCK, id, block.getLocation(), root, block);
     }
 
     /**
@@ -39,7 +39,7 @@ public final class InspectorService {
     public InspectableObject inspect(Entity entity) {
         DataNode root = adapter.readEntityData(entity);
         String id = entity.getType().name() + "#" + entity.getUniqueId().toString().substring(0, 8);
-        return new InspectableObject(InspectableType.ENTITY, id, entity.getLocation(), root);
+        return new InspectableObject(InspectableType.ENTITY, id, entity.getLocation(), root, entity);
     }
 
     /**
@@ -49,6 +49,6 @@ public final class InspectorService {
     public InspectableObject inspect(ItemStack item) {
         DataNode root = adapter.readItemData(item);
         String id = item.getType().name() + "x" + item.getAmount();
-        return new InspectableObject(InspectableType.ITEM, id, null, root);
+        return new InspectableObject(InspectableType.ITEM, id, null, root, item);
     }
 }

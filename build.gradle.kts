@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     java
-    id("com.gradleup.shadow") version "8.3.6"
+    id("com.gradleup.shadow") version "8.3.8"
     id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 
@@ -14,6 +14,7 @@ repositories {
     mavenCentral()
     maven("https://hub.spigotmc.org/nexus/content/groups/public/")
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.codemc.io/repository/maven-public/")
 }
 
 dependencies {
@@ -26,6 +27,7 @@ dependencies {
     // Shaded libraries
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+    implementation("de.tr7zw:item-nbt-api:2.15.7")
 
     // Adventure — shaded for cross-platform Component support
     // On Paper: native Adventure is used (zero overhead)
@@ -60,6 +62,8 @@ tasks {
     named<ShadowJar>("shadowJar") {
         archiveClassifier = ""
         archiveBaseName = "DataLens"
+
+        relocate("de.tr7zw.changeme.nbtapi", "dev.darkblade.datalens.nbtapi")
 
         // Note: relocation disabled — shadow's ASM cannot process Java 21 bytecode (version 65).
         // Jackson, Caffeine and Adventure are NOT bundled by Spigot, so no classloader conflicts exist.

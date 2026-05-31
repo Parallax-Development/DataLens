@@ -17,10 +17,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.Bukkit;
 
 /**
  * Handles all click events inside {@link InspectorGui} inventories.
@@ -38,8 +40,20 @@ import java.util.UUID;
  */
 public final class GuiListener implements Listener {
 
+    private static class EditContext {
+        final PlayerSession session;
+        final DataNode node;
+        final InspectorGui gui;
+
+        EditContext(PlayerSession session, DataNode node, InspectorGui gui) {
+            this.session = session;
+            this.node = node;
+            this.gui = gui;
+        }
+    }
+
     /** Players currently waiting for a chat-based edit input. */
-    private final Set<UUID> awaitingEdit = new HashSet<>();
+    private final Map<UUID, EditContext> awaitingEdit = new ConcurrentHashMap<>();
 
     private final SessionService sessions;
     private final EditService editService;
@@ -132,10 +146,38 @@ public final class GuiListener implements Listener {
         audience.sendMessage(Component.text("│ Current: ").color(NamedTextColor.GRAY)
                 .append(Component.text(String.valueOf(node.getValue())).color(NamedTextColor.YELLOW)));
         audience.sendMessage(Component.text("└── Type new value in chat (or 'cancel'):").color(NamedTextColor.DARK_AQUA));
-        awaitingEdit.add(player.getUniqueId());
+        awaitingEdit.put(player.getUniqueId(), new EditContext(session, node, gui));
+    }
 
-        // In a full implementation this hooks AsyncPlayerChatEvent — simplified here
-        // The command /data set <path> <value> is the primary edit mechanism
+    @EventHandler(priority = org.bukkit.event.EventPriority.LOWEST)
+    public void onPlayerChat(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        EditContext ctx = awaitingEdit.remove(player.getUniqueId());
+        if (ctx == null) return;
+
+        event.setCancelled(true);
+        String message = event.getMessage();
+
+        Bukkit.getScheduler().runTask(org.bukkit.plugin.java.JavaPlugin.getProvidingPlugin(getClass()), () -> {
+            if (message.equalsIgnoreCase("cancel")) {
+                TextUtil.audience(player).sendMessage(Component.text("Edit cancelled.").color(NamedTextColor.YELLOW));
+                ctx.gui.render();
+                player.openInventory(ctx.gui.getInventory());
+                return;
+            }
+
+            try {
+                editService.setNodeValue(ctx.session.getTarget(), ctx.node, null, message, player.getName());
+                TextUtil.audience(player).sendMessage(Component.text("Value updated successfully!").color(NamedTextColor.GREEN));
+                ctx.session.refresh();
+                ctx.gui.render();
+                player.openInventory(ctx.gui.getInventory());
+            } catch (Exception e) {
+                TextUtil.audience(player).sendMessage(Component.text("Edit failed: " + e.getMessage()).color(NamedTextColor.RED));
+                ctx.gui.render();
+                player.openInventory(ctx.gui.getInventory());
+            }
+        });
     }
 
     private void confirmDelete(Player player, PlayerSession session, DataNode node, InspectorGui gui) {

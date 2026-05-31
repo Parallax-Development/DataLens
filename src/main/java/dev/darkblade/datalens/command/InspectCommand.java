@@ -69,9 +69,20 @@ public final class InspectCommand implements CommandExecutor, TabCompleter {
         InspectorService inspector = svc.inspector();
         SessionService sessions = svc.sessions();
 
-        // ── Mode A: /inspect <playername> ─────────────────────────────────────
+        // ── Mode A: /inspect <playername> or <hand> ───────────────────────────
         if (args.length >= 1) {
             String targetName = args[0];
+
+            if (targetName.equalsIgnoreCase("hand") || targetName.equalsIgnoreCase("item")) {
+                org.bukkit.inventory.ItemStack itemTarget = player.getInventory().getItemInMainHand();
+                if (itemTarget.getType() == Material.AIR) {
+                    TextUtil.audience(player).sendMessage(Component.text("You are not holding any item.").color(NamedTextColor.RED));
+                    return true;
+                }
+                InspectableObject obj = inspector.inspect(itemTarget);
+                openGui(player, obj, sessions);
+                return true;
+            }
             Player targetPlayer = Bukkit.getPlayerExact(targetName);
 
             if (targetPlayer == null) {
@@ -119,10 +130,18 @@ public final class InspectCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        TextUtil.audience(player).sendMessage(Component.text("No block or entity found within ")
+        // 3. Item fallback
+        org.bukkit.inventory.ItemStack itemTarget = player.getInventory().getItemInMainHand();
+        if (itemTarget.getType() != Material.AIR) {
+            InspectableObject obj = inspector.inspect(itemTarget);
+            openGui(player, obj, sessions);
+            return true;
+        }
+
+        TextUtil.audience(player).sendMessage(Component.text("No block, entity, or item found within ")
                 .color(NamedTextColor.YELLOW)
                 .append(Component.text(maxDistance + " blocks. ").color(NamedTextColor.WHITE))
-                .append(Component.text("Tip: use /inspect <player> to inspect by name.")
+                .append(Component.text("Tip: use /inspect <player> or /inspect hand.")
                         .color(NamedTextColor.GRAY)));
         return true;
     }
@@ -133,14 +152,12 @@ public final class InspectCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) return List.of();
 
-        // arg[0] — suggest online player names
+        // arg[0] — suggest online player names + "hand"
         if (args.length == 1) {
-            return PathCompleter.filter(
-                    Bukkit.getOnlinePlayers().stream()
-                            .map(Player::getName)
-                            .toList(),
-                    args[0]
-            );
+            java.util.List<String> completions = new java.util.ArrayList<>();
+            completions.add("hand");
+            completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+            return PathCompleter.filter(completions, args[0]);
         }
 
         return List.of();

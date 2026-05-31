@@ -48,7 +48,13 @@ public final class EditService {
      */
     public void setValue(InspectableObject object, String path, String rawValue, String actor) {
         DataNode target = resolveOrThrow(object, path);
+        setNodeValue(object, target, path, rawValue, actor);
+    }
 
+    /**
+     * Sets the value of a specific node directly (used by GUI).
+     */
+    public void setNodeValue(InspectableObject object, DataNode target, String path, String rawValue, String actor) {
         ValidationResult validation = validator.validate(target.getType(), rawValue);
         if (!validation.isValid()) {
             throw new EditException("Validation failed: " + validation.getError().orElse("unknown error"));
@@ -61,7 +67,7 @@ public final class EditService {
         try {
             target.setValue(coerced);
             adapter.writeData(object, object.getRoot());
-            changeLog.log(actor, object.getId(), "SET", path, String.valueOf(oldValue), rawValue);
+            changeLog.log(actor, object.getId(), "SET", path != null ? path : target.getKey(), String.valueOf(oldValue), rawValue);
         } catch (Exception ex) {
             object.setRoot(snapshot); // rollback
             throw new EditException("Persist failed — rolled back. Cause: " + ex.getMessage(), ex);

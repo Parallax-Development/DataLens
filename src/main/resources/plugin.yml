@@ -8,8 +8,8 @@ authors:
 
 commands:
   inspect:
-    description: Inspect the block/entity you are looking at, or a named player.
-    usage: /inspect [player]
+    description: Inspect the block, entity, or item you are looking at, or a named player/hand.
+    usage: /inspect [player|hand]
     permission: datalens.inspect
   data:
     description: Manage data on the currently inspected object.

@@ -15,13 +15,15 @@ public final class InspectableObject {
     private final InspectableType type;
     private final String id;
     @Nullable private final Location location;
+    @Nullable private final Object liveReference;
     private DataNode root;
 
-    public InspectableObject(InspectableType type, String id, @Nullable Location location, DataNode root) {
+    public InspectableObject(InspectableType type, String id, @Nullable Location location, DataNode root, @Nullable Object liveReference) {
         this.type = Objects.requireNonNull(type, "type");
         this.id = Objects.requireNonNull(id, "id");
         this.location = location;
         this.root = Objects.requireNonNull(root, "root");
+        this.liveReference = liveReference;
     }
 
     public InspectableType getType() { return type; }
@@ -30,6 +32,10 @@ public final class InspectableObject {
     /** World location where this object was found. Null for ItemStack inspections. */
     @Nullable
     public Location getLocation() { return location; }
+
+    /** Live reference to the Minecraft object (Block, Entity, or ItemStack) to allow write-backs. */
+    @Nullable
+    public Object getLiveReference() { return liveReference; }
 
     public DataNode getRoot() { return root; }
 
